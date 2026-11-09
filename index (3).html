@@ -1,0 +1,1825 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Warm Up — Word + Word = New Word</title>
+  <!-- Google Fonts: Nunito & Comfortaa -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@700&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --font-main: 'Nunito', 'Comfortaa', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --wood-dark: #6e3b16;
+      --wood-mid: #9c5624;
+      --wood-light: #bd6e33;
+      --wood-border: #4a250b;
+      --cream-bg: #fff9eb;
+      --cream-border: #f0dec1;
+      --blue-gloss-top: #4fc3f7;
+      --blue-gloss-bot: #0288d1;
+      --orange-gloss-top: #ff8a50;
+      --orange-gloss-bot: #e64a19;
+      --green-gloss-top: #66bb6a;
+      --green-gloss-bot: #2e7d32;
+      --gold: #ffd54f;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: var(--font-main);
+      color: #2c3e50;
+      background: #b3e5fc;
+    }
+
+    /* Dynamic Background Layer */
+    #app-bg {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(135deg, #b3e5fc 0%, #e1f5fe 50%, #fff9c4 100%);
+      transition: background 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 0;
+    }
+
+    /* Theme Backgrounds for each riddle */
+    body.theme-start #app-bg {
+      background: linear-gradient(135deg, #bae6fd 0%, #dcfce7 35%, #fef08a 70%, #fed7aa 100%);
+    }
+    body.theme-winter #app-bg {
+      background: radial-gradient(circle at 50% 25%, #ffffff 0%, #bae6fd 55%, #38bdf8 100%);
+    }
+    body.theme-spring #app-bg {
+      background: radial-gradient(circle at 50% 25%, #f0fdf4 0%, #bbf7d0 55%, #4ade80 100%);
+    }
+    body.theme-summer #app-bg {
+      background: radial-gradient(circle at 50% 25%, #fefce8 0%, #fef08a 55%, #facc15 100%);
+    }
+    body.theme-autumn #app-bg {
+      background: radial-gradient(circle at 50% 25%, #fff7ed 0%, #fed7aa 55%, #fb923c 100%);
+    }
+    body.theme-beach #app-bg {
+      background: radial-gradient(circle at 50% 25%, #f0fdfa 0%, #99f6e4 55%, #2dd4bf 100%);
+    }
+
+    /* Ambient Falling Particles & Confetti Canvas */
+    #ambient-particles {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+      overflow: hidden;
+    }
+    .ambient-item {
+      position: absolute;
+      top: -60px;
+      font-size: clamp(18px, 2.2vw, 30px);
+      opacity: 0.75;
+      animation: fallDrift linear infinite;
+      filter: drop-shadow(0 2px 4px rgba(0,0,0,0.08));
+    }
+    @keyframes fallDrift {
+      0% { transform: translateY(-60px) translateX(0) rotate(0deg); }
+      50% { transform: translateY(50vh) translateX(35px) rotate(180deg); }
+      100% { transform: translateY(112vh) translateX(-25px) rotate(360deg); }
+    }
+
+    #confetti-canvas {
+      position: fixed;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    /* Screens Layout */
+    .screen {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      padding: clamp(10px, 2vh, 24px) clamp(14px, 3vw, 36px);
+      opacity: 0;
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      transition: opacity 0.55s ease, transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transform: scale(0.96);
+    }
+    .screen.active {
+      opacity: 1;
+      pointer-events: auto;
+      transform: scale(1);
+    }
+
+    /* Focus visibility for projector / keyboard navigation */
+    button:focus-visible, input:focus-visible {
+      outline: 4px solid #ffeb3b;
+      outline-offset: 3px;
+    }
+
+    /* ================= 1) START SCREEN ================= */
+    .start-header {
+      text-align: center;
+      margin-top: 0.5vh;
+    }
+    .main-title {
+      font-size: clamp(3rem, 7vw, 6.2rem);
+      font-weight: 900;
+      color: #ffffff;
+      letter-spacing: 2px;
+      line-height: 1.05;
+      text-shadow: 
+        0 4px 0 #0288d1,
+        0 8px 0 #01579b,
+        0 14px 25px rgba(0,0,0,0.28);
+      -webkit-text-stroke: 2px #01579b;
+    }
+    .sub-title {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: clamp(1.2rem, 2.5vw, 2.2rem);
+      font-weight: 800;
+      color: #5d3a1a;
+      background: rgba(255, 255, 255, 0.88);
+      padding: 6px 26px;
+      border-radius: 999px;
+      border: 3px solid #ffffff;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    }
+
+    /* Four Seasons Illustration Container */
+    .illustration-wrap {
+      width: min(94vw, 960px);
+      height: min(46vh, 420px);
+      border-radius: 34px;
+      border: 8px solid #ffffff;
+      box-shadow: 
+        0 18px 40px rgba(0, 50, 90, 0.22),
+        0 0 0 4px rgba(255,255,255,0.5);
+      overflow: hidden;
+      background: #fff;
+      position: relative;
+      animation: gentleFloat 5s ease-in-out infinite;
+    }
+    @keyframes gentleFloat {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-8px); }
+    }
+    .illustration-wrap svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .season-badge-row {
+      position: absolute;
+      top: 10px;
+      left: 0;
+      right: 0;
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      pointer-events: none;
+      text-align: center;
+      font-weight: 900;
+      font-size: clamp(0.75rem, 1.3vw, 1.1rem);
+      color: rgba(255,255,255,0.95);
+      text-shadow: 0 2px 4px rgba(0,0,0,0.35);
+    }
+
+    /* Glossy Buttons */
+    .btn-glossy {
+      position: relative;
+      border: none;
+      border-radius: 999px;
+      font-family: var(--font-main);
+      font-weight: 900;
+      cursor: pointer;
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: transform 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+      text-shadow: 0 2px 3px rgba(0,0,0,0.3);
+    }
+    .btn-glossy::before {
+      content: '';
+      position: absolute;
+      top: 4px;
+      left: 12%;
+      right: 12%;
+      height: 38%;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.65), rgba(255,255,255,0.05));
+      border-radius: 999px;
+      pointer-events: none;
+    }
+    .btn-glossy:hover {
+      filter: brightness(1.06);
+      transform: translateY(-3px);
+    }
+    .btn-glossy:active {
+      transform: translateY(3px);
+    }
+
+    .btn-start {
+      font-size: clamp(1.5rem, 3vw, 2.5rem);
+      padding: clamp(12px, 2vh, 20px) clamp(38px, 6vw, 68px);
+      background: linear-gradient(to bottom, #66bb6a, #2e7d32);
+      border: 4px solid #ffffff;
+      box-shadow: 
+        0 8px 0 #1b5e20,
+        0 16px 30px rgba(0,0,0,0.28);
+      margin-bottom: 1vh;
+    }
+    .btn-start:active {
+      box-shadow: 0 3px 0 #1b5e20, 0 8px 15px rgba(0,0,0,0.25);
+    }
+
+    /* ================= 2) GAME SCREEN TOP BAR ================= */
+    .top-bar {
+      width: 100%;
+      max-width: 1280px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(8px);
+      padding: 8px 18px;
+      border-radius: 999px;
+      border: 3px solid #ffffff;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    }
+
+    .brand-mini {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 900;
+      font-size: clamp(1.1rem, 2vw, 1.5rem);
+      color: #0277bd;
+    }
+    .riddle-counter {
+      background: #e1f5fe;
+      color: #01579b;
+      padding: 4px 14px;
+      border-radius: 999px;
+      font-size: clamp(0.95rem, 1.5vw, 1.2rem);
+      border: 2px solid #81d4fa;
+    }
+
+    /* Mode Toggle Switch: Manual / Auto */
+    .mode-switch-group {
+      display: flex;
+      align-items: center;
+      background: #e2e8f0;
+      padding: 4px;
+      border-radius: 999px;
+      border: 2px solid #cbd5e1;
+    }
+    .mode-btn {
+      border: none;
+      background: transparent;
+      font-family: var(--font-main);
+      font-weight: 800;
+      font-size: clamp(0.9rem, 1.4vw, 1.15rem);
+      padding: 6px 18px;
+      border-radius: 999px;
+      cursor: pointer;
+      color: #475569;
+      transition: all 0.2s ease;
+    }
+    .mode-btn.active {
+      background: linear-gradient(to bottom, #29b6f6, #0288d1);
+      color: #ffffff;
+      box-shadow: 0 3px 8px rgba(2, 136, 209, 0.35);
+    }
+
+    /* Timer Widget (Visible in Auto mode) */
+    .timer-widget {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #fff8e1;
+      border: 2px solid #ffe082;
+      padding: 4px 14px;
+      border-radius: 999px;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .timer-widget.hidden {
+      opacity: 0.35;
+      filter: grayscale(0.8);
+    }
+    .timer-ring-wrap {
+      position: relative;
+      width: 38px;
+      height: 38px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .timer-ring-svg {
+      width: 38px;
+      height: 38px;
+      transform: rotate(-90deg);
+    }
+    .timer-ring-bg {
+      fill: none;
+      stroke: #e2e8f0;
+      stroke-width: 4.5;
+    }
+    .timer-ring-fg {
+      fill: none;
+      stroke: #ff8f00;
+      stroke-width: 4.5;
+      stroke-linecap: round;
+      stroke-dasharray: 94.25;
+      stroke-dashoffset: 0;
+      transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
+    }
+    .timer-seconds {
+      position: absolute;
+      font-weight: 900;
+      font-size: 0.95rem;
+      color: #e65100;
+    }
+    .timer-status-text {
+      font-weight: 800;
+      font-size: clamp(0.85rem, 1.3vw, 1.05rem);
+      color: #6d4c41;
+      min-width: 110px;
+    }
+
+    /* Top Right Utility Icon Buttons */
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .icon-btn {
+      width: clamp(38px, 4.5vw, 46px);
+      height: clamp(38px, 4.5vw, 46px);
+      border-radius: 50%;
+      border: 2px solid #cbd5e1;
+      background: #ffffff;
+      color: #334155;
+      font-size: clamp(1.1rem, 1.8vw, 1.35rem);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 0 #cbd5e1;
+      transition: transform 0.12s ease, background 0.15s ease;
+    }
+    .icon-btn:hover {
+      background: #f8fafc;
+      transform: translateY(-2px);
+    }
+    .icon-btn:active {
+      transform: translateY(2px);
+      box-shadow: 0 1px 0 #cbd5e1;
+    }
+    .icon-btn.paused-highlight {
+      background: #fef08a;
+      border-color: #eab308;
+      color: #a16207;
+    }
+
+    /* ================= CHUNKY WOODEN SIGNBOARD ================= */
+    .board-stage {
+      position: relative;
+      width: min(96vw, 1220px);
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .wooden-board {
+      position: relative;
+      width: 100%;
+      background: 
+        repeating-linear-gradient(
+          90deg,
+          rgba(255,255,255,0.03) 0px,
+          rgba(255,255,255,0.03) 24px,
+          rgba(0,0,0,0.04) 24px,
+          rgba(0,0,0,0.04) 48px
+        ),
+        linear-gradient(180deg, var(--wood-light) 0%, var(--wood-mid) 45%, var(--wood-dark) 100%);
+      border-radius: clamp(28px, 4vw, 48px);
+      padding: clamp(18px, 3vw, 34px);
+      border: 6px solid var(--wood-border);
+      box-shadow: 
+        0 14px 0 var(--wood-border),
+        0 26px 50px rgba(0,0,0,0.32),
+        inset 0 4px 0 rgba(255,255,255,0.35),
+        inset 0 -6px 0 rgba(0,0,0,0.3);
+    }
+
+    /* Decorative Wood Bolts in Corners */
+    .wood-bolt {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      background: radial-gradient(circle at 35% 35%, #ffe082, #b28704);
+      border: 3px solid #4a250b;
+      border-radius: 50%;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.4);
+      z-index: 4;
+    }
+    .wood-bolt.tl { top: 14px; left: 16px; }
+    .wood-bolt.tr { top: 14px; right: 16px; }
+    .wood-bolt.bl { bottom: 14px; left: 16px; }
+    .wood-bolt.br { bottom: 14px; right: 16px; }
+
+    /* Snow Caps Sitting on Top of the Wooden Board */
+    .snow-cap {
+      position: absolute;
+      top: -16px;
+      height: 34px;
+      background: linear-gradient(180deg, #ffffff 0%, #e1f5fe 100%);
+      border-radius: 26px 26px 20px 20px;
+      box-shadow: 
+        0 5px 0 #b3e5fc,
+        0 8px 12px rgba(0,0,0,0.14);
+      z-index: 5;
+      pointer-events: none;
+    }
+    .snow-cap.left {
+      left: 36px;
+      width: clamp(110px, 22%, 240px);
+    }
+    .snow-cap.left::after {
+      content: '';
+      position: absolute;
+      bottom: -8px;
+      left: 28px;
+      width: 45px;
+      height: 16px;
+      background: #e1f5fe;
+      border-radius: 0 0 16px 16px;
+      box-shadow: 0 4px 0 #b3e5fc;
+    }
+    .snow-cap.center {
+      left: 44%;
+      width: clamp(70px, 14%, 150px);
+      height: 26px;
+      top: -13px;
+    }
+    .snow-cap.right {
+      right: 36px;
+      width: clamp(100px, 20%, 210px);
+    }
+
+    /* Inner Cream Panel */
+    .cream-panel {
+      background: radial-gradient(circle at center, #ffffff 0%, var(--cream-bg) 100%);
+      border-radius: clamp(20px, 3vw, 34px);
+      border: 5px solid var(--cream-border);
+      box-shadow: inset 0 6px 16px rgba(139, 90, 43, 0.14);
+      padding: clamp(18px, 3.2vh, 36px) clamp(12px, 2.5vw, 32px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(14px, 2.5vh, 26px);
+    }
+
+    /* Equation Row: [Card 1] + [Card 2] = [Answer Card] */
+    .equation-row {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(12px, 3vw, 36px);
+      flex-wrap: nowrap;
+    }
+
+    .pic-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      flex: 1 1 0;
+      max-width: 280px;
+    }
+
+    .pic-frame {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-width: clamp(120px, 24vh, 230px);
+      background: #ffffff;
+      border-radius: clamp(20px, 3vw, 34px);
+      border: 5px solid #e2e8f0;
+      box-shadow: 
+        0 10px 0 #cbd5e1,
+        0 16px 28px rgba(0,0,0,0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.3s ease;
+    }
+    .pic-frame:hover {
+      transform: translateY(-4px) scale(1.02);
+    }
+
+    .emoji-art {
+      font-size: clamp(4rem, 12vh, 8rem);
+      line-height: 1;
+      filter: drop-shadow(0 8px 10px rgba(0,0,0,0.14));
+      transition: transform 0.3s ease;
+    }
+    .img-art {
+      width: 80%;
+      height: 80%;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 10px rgba(0,0,0,0.14));
+    }
+
+    /* Glossy Blue Plus (+) and Equals (=) Signs */
+    .math-sign {
+      width: clamp(44px, 6.5vw, 78px);
+      height: clamp(44px, 6.5vw, 78px);
+      border-radius: 50%;
+      background: linear-gradient(180deg, var(--blue-gloss-top) 0%, var(--blue-gloss-bot) 100%);
+      border: 4px solid #ffffff;
+      box-shadow: 
+        0 7px 0 #01579b,
+        0 12px 20px rgba(2, 136, 209, 0.35);
+      color: #ffffff;
+      font-weight: 900;
+      font-size: clamp(2rem, 4.2vw, 3.6rem);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      text-shadow: 0 3px 0 #01579b;
+      position: relative;
+    }
+    .math-sign::before {
+      content: '';
+      position: absolute;
+      top: 4px;
+      left: 16%;
+      right: 16%;
+      height: 35%;
+      background: linear-gradient(to bottom, rgba(255,255,255,0.7), rgba(255,255,255,0));
+      border-radius: 999px;
+    }
+
+    /* 3D Flip Container for Answer Slot */
+    .answer-perspective {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      max-width: clamp(120px, 24vh, 230px);
+      perspective: 900px;
+      cursor: pointer;
+    }
+    .answer-flipper {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .answer-flipper.revealed {
+      transform: rotateY(180deg) scale(1.05);
+    }
+
+    .answer-face {
+      position: absolute;
+      inset: 0;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      border-radius: clamp(20px, 3vw, 34px);
+      background: #ffffff;
+      border: 5px solid #ffd54f;
+      box-shadow: 
+        0 10px 0 #f59e0b,
+        0 16px 28px rgba(245, 158, 11, 0.22);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Front Face: Big Glossy Red-Orange Question Mark with Golden Outline */
+    .answer-front {
+      background: radial-gradient(circle at center, #fffde7 0%, #fff8e1 100%);
+    }
+    .question-mark-badge {
+      font-size: clamp(4.2rem, 12vh, 8rem);
+      font-weight: 900;
+      line-height: 1;
+      background: linear-gradient(180deg, #ff7043 0%, #d84315 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      -webkit-text-stroke: 4px #ffb300;
+      filter: drop-shadow(0 6px 0 #bf360c) drop-shadow(0 10px 16px rgba(216,67,21,0.35));
+      animation: qPulse 2s ease-in-out infinite;
+      user-select: none;
+    }
+    @keyframes qPulse {
+      0%, 100% { transform: scale(1) rotate(-3deg); }
+      50% { transform: scale(1.1) rotate(4deg); }
+    }
+
+    /* Back Face: Revealed Answer Emoji */
+    .answer-back {
+      transform: rotateY(180deg);
+      background: radial-gradient(circle at center, #ffffff 0%, #fef9c3 100%);
+      border-color: #4ade80;
+      box-shadow: 
+        0 10px 0 #22c55e,
+        0 18px 34px rgba(34, 197, 94, 0.3);
+    }
+
+    /* English Full Answer Banner inside Cream Panel */
+    .answer-banner {
+      min-height: clamp(50px, 7.5vh, 68px);
+      padding: 8px 32px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #fef08a, #fde047, #fef08a);
+      border: 4px solid #eab308;
+      box-shadow: 0 6px 0 #ca8a04, 0 10px 24px rgba(202, 138, 4, 0.25);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      opacity: 0;
+      transform: translateY(10px) scale(0.9);
+      pointer-events: none;
+      transition: opacity 0.35s ease, transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .answer-banner.visible {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      pointer-events: auto;
+    }
+    .answer-banner-text {
+      font-size: clamp(1.25rem, 2.6vw, 2.1rem);
+      font-weight: 900;
+      color: #7c2d12;
+    }
+
+    @keyframes popBounce {
+      0% { transform: scale(0.6); }
+      70% { transform: scale(1.12); }
+      100% { transform: scale(1); }
+    }
+
+    /* ================= BOTTOM CONTROLS & PROGRESS DOTS ================= */
+    .bottom-bar {
+      width: 100%;
+      max-width: 1180px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: clamp(8px, 1.5vh, 14px);
+    }
+
+    .nav-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: clamp(12px, 2.2vw, 24px);
+      flex-wrap: wrap;
+    }
+
+    .btn-nav {
+      font-size: clamp(1.05rem, 1.9vw, 1.5rem);
+      padding: clamp(10px, 1.6vh, 15px) clamp(22px, 3.2vw, 36px);
+      border: 3px solid #ffffff;
+    }
+    .btn-prev {
+      background: linear-gradient(to bottom, #94a3b8, #64748b);
+      box-shadow: 0 6px 0 #334155, 0 10px 20px rgba(0,0,0,0.2);
+    }
+    .btn-prev:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-reveal {
+      font-size: clamp(1.15rem, 2.2vw, 1.75rem);
+      padding: clamp(12px, 1.8vh, 18px) clamp(30px, 4.5vw, 52px);
+      background: linear-gradient(to bottom, var(--orange-gloss-top), var(--orange-gloss-bot));
+      box-shadow: 0 7px 0 #bf360c, 0 12px 25px rgba(230, 74, 25, 0.35);
+    }
+    .btn-reveal.done {
+      background: linear-gradient(to bottom, #38bdf8, #0284c7);
+      box-shadow: 0 7px 0 #0369a1, 0 12px 25px rgba(2, 132, 199, 0.3);
+    }
+    .btn-next {
+      background: linear-gradient(to bottom, var(--green-gloss-top), var(--green-gloss-bot));
+      box-shadow: 0 6px 0 #1b5e20, 0 10px 20px rgba(46, 125, 50, 0.3);
+    }
+
+    /* Progress Dots */
+    .dots-bar {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(255,255,255,0.75);
+      padding: 8px 20px;
+      border-radius: 999px;
+      border: 2px solid #ffffff;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .dot-btn {
+      width: clamp(16px, 2vw, 22px);
+      height: clamp(16px, 2vw, 22px);
+      border-radius: 50%;
+      border: 3px solid #0288d1;
+      background: #ffffff;
+      cursor: pointer;
+      transition: transform 0.2s ease, background 0.2s ease, width 0.2s ease;
+    }
+    .dot-btn:hover {
+      transform: scale(1.2);
+    }
+    .dot-btn.active {
+      width: clamp(32px, 3.8vw, 44px);
+      border-radius: 999px;
+      background: #0288d1;
+    }
+    .dot-btn.completed {
+      background: #4ade80;
+      border-color: #16a34a;
+    }
+
+    /* ================= 3) SETTINGS MODAL ================= */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      backdrop-filter: blur(5px);
+      z-index: 80;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease;
+      padding: 16px;
+    }
+    .modal-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .settings-card {
+      width: min(92vw, 520px);
+      background: #fff9eb;
+      border: 6px solid var(--wood-mid);
+      border-radius: 32px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+      padding: 28px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+      transform: scale(0.92);
+      transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .modal-backdrop.open .settings-card {
+      transform: scale(1);
+    }
+    .settings-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 3px dashed #e2d1b3;
+      padding-bottom: 12px;
+    }
+    .settings-title {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--wood-dark);
+    }
+    .slider-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .slider-label-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 800;
+      font-size: 1.15rem;
+      color: #334155;
+    }
+    .slider-val-badge {
+      background: #0288d1;
+      color: #fff;
+      padding: 3px 12px;
+      border-radius: 999px;
+      font-weight: 900;
+    }
+    input[type="range"] {
+      width: 100%;
+      height: 12px;
+      border-radius: 999px;
+      background: #cbd5e1;
+      appearance: none;
+      outline: none;
+      cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #ff8f00;
+      border: 4px solid #ffffff;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+      cursor: pointer;
+    }
+    .shortcuts-box {
+      background: #f1f5f9;
+      border-radius: 18px;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      color: #475569;
+      line-height: 1.6;
+      border: 2px solid #e2e8f0;
+    }
+    .kbd {
+      background: #ffffff;
+      border: 2px solid #cbd5e1;
+      border-radius: 6px;
+      padding: 1px 7px;
+      font-weight: 900;
+      color: #0f172a;
+      font-size: 0.85rem;
+    }
+
+    /* ================= 4) END SCREEN ================= */
+    .end-card {
+      background: rgba(255, 255, 255, 0.92);
+      border: 8px solid #ffffff;
+      border-radius: 42px;
+      padding: clamp(28px, 5vh, 56px) clamp(28px, 6vw, 72px);
+      text-align: center;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 24px;
+      margin: auto;
+      max-width: 820px;
+    }
+    .end-trophy {
+      font-size: clamp(4.5rem, 11vw, 7.5rem);
+      animation: gentleFloat 3s ease-in-out infinite;
+    }
+    .end-title {
+      font-size: clamp(2.4rem, 6vw, 4.8rem);
+      font-weight: 900;
+      color: #15803d;
+      text-shadow: 0 4px 0 #bbf7d0;
+    }
+    .end-summary-strip {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .end-mini-badge {
+      background: #fef9c3;
+      border: 3px solid #fde047;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-weight: 800;
+      font-size: clamp(1rem, 1.8vw, 1.35rem);
+      color: #854d0e;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Responsive adjustments for smaller mobile screens */
+    @media (max-width: 720px) {
+      .equation-row {
+        gap: 6px;
+      }
+      .math-sign {
+        width: 34px;
+        height: 34px;
+        font-size: 1.4rem;
+        margin-bottom: 28px;
+      }
+      .word-label {
+        font-size: 0.85rem;
+        padding: 4px 10px;
+        min-width: 74px;
+      }
+      .snow-cap.center {
+        display: none;
+      }
+      .timer-status-text {
+        display: none;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+      .ambient-item {
+        display: none !important;
+      }
+    }
+  </style>
+</head>
+<body class="theme-start">
+
+  <!-- Dynamic Theme Background -->
+  <div id="app-bg"></div>
+
+  <!-- Ambient Falling Snowflakes & Leaves -->
+  <div id="ambient-particles" aria-hidden="true"></div>
+
+  <!-- Celebration Confetti Canvas -->
+  <canvas id="confetti-canvas" aria-hidden="true"></canvas>
+
+  <!-- =========================================================
+       1) START SCREEN
+  ========================================================== -->
+  <section id="start-screen" class="screen active" aria-label="Start Screen">
+    <header class="start-header">
+      <h1 class="main-title">Warm Up</h1>
+      <div class="sub-title">Word + Word = New Word</div>
+    </header>
+
+    <!-- Four Seasons Illustration Container -->
+    <div class="illustration-wrap" role="img" aria-label="Four seasons snow town illustration">
+      <div class="season-badge-row">
+        <span>❄️ Winter</span>
+        <span>🌸 Spring</span>
+        <span>☀️ Summer</span>
+        <span>🍂 Autumn</span>
+      </div>
+      <svg viewBox="0 0 1000 440" preserveAspectRatio="xMidYMid slice">
+        <defs>
+          <clipPath id="q-winter"><rect x="0" y="0" width="250" height="440"/></clipPath>
+          <clipPath id="q-spring"><rect x="250" y="0" width="250" height="440"/></clipPath>
+          <clipPath id="q-summer"><rect x="500" y="0" width="250" height="440"/></clipPath>
+          <clipPath id="q-autumn"><rect x="750" y="0" width="250" height="440"/></clipPath>
+
+          <linearGradient id="sky-w" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#7dd3fc"/>
+            <stop offset="100%" stop-color="#e0f2fe"/>
+          </linearGradient>
+          <linearGradient id="sky-sp" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#93c5fd"/>
+            <stop offset="100%" stop-color="#dcfce7"/>
+          </linearGradient>
+          <linearGradient id="sky-su" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#38bdf8"/>
+            <stop offset="100%" stop-color="#fef9c3"/>
+          </linearGradient>
+          <linearGradient id="sky-au" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#fb923c"/>
+            <stop offset="100%" stop-color="#ffedd5"/>
+          </linearGradient>
+        </defs>
+
+        <!-- WINTER -->
+        <g clip-path="url(#q-winter)">
+          <rect x="0" y="0" width="250" height="440" fill="url(#sky-w)"/>
+          <path d="M-20 310 Q 120 220 270 300 L 270 440 L -20 440 Z" fill="#e0f2fe"/>
+          <path d="M-20 350 Q 110 275 270 340 L 270 440 L -20 440 Z" fill="#ffffff"/>
+          <polygon points="48,225 22,285 74,285" fill="#1e40af"/>
+          <polygon points="48,200 28,250 68,250" fill="#1d4ed8"/>
+          <polygon points="48,198 34,222 62,222" fill="#ffffff"/>
+          <rect x="78" y="245" width="76" height="62" rx="6" fill="#fffbeb" stroke="#cbd5e1" stroke-width="2"/>
+          <polygon points="68,250 116,204 164,250" fill="#ef4444"/>
+          <path d="M72 248 Q 116 210 160 248" fill="none" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+          <rect x="104" y="268" width="24" height="39" rx="4" fill="#b45309"/>
+          <rect x="86" y="260" width="14" height="14" rx="2" fill="#fef08a"/>
+          <!-- Snowman -->
+          <circle cx="195" cy="332" r="28" fill="#ffffff" stroke="#bae6fd" stroke-width="2"/>
+          <circle cx="195" cy="288" r="21" fill="#ffffff" stroke="#bae6fd" stroke-width="2"/>
+          <circle cx="195" cy="254" r="15" fill="#ffffff" stroke="#bae6fd" stroke-width="2"/>
+          <path d="M181 266 Q 195 273 209 266" fill="none" stroke="#ef4444" stroke-width="6" stroke-linecap="round"/>
+          <path d="M202 268 L 207 288" stroke="#ef4444" stroke-width="5" stroke-linecap="round"/>
+          <polygon points="183,242 207,242 203,222 187,222" fill="#334155"/>
+          <circle cx="190" cy="251" r="2.2" fill="#0f172a"/>
+          <circle cx="200" cy="251" r="2.2" fill="#0f172a"/>
+          <polygon points="195,254 209,257 195,259" fill="#f97316"/>
+          <circle cx="40" cy="80" r="4" fill="#fff"/>
+          <circle cx="130" cy="60" r="5" fill="#fff"/>
+          <circle cx="200" cy="110" r="3.5" fill="#fff"/>
+          <circle cx="90" cy="140" r="4" fill="#fff"/>
+        </g>
+
+        <!-- SPRING -->
+        <g clip-path="url(#q-spring)">
+          <rect x="250" y="0" width="250" height="440" fill="url(#sky-sp)"/>
+          <g fill="#ffffff" opacity="0.9">
+            <circle cx="330" cy="82" r="20"/>
+            <circle cx="352" cy="76" r="25"/>
+            <circle cx="376" cy="84" r="18"/>
+          </g>
+          <path d="M230 305 Q 375 230 520 310 L 520 440 L 230 440 Z" fill="#86efac"/>
+          <path d="M230 345 Q 375 285 520 350 L 520 440 L 230 440 Z" fill="#4ade80"/>
+          <rect x="355" y="248" width="74" height="58" rx="6" fill="#fffbeb"/>
+          <polygon points="346,252 392,208 438,252" fill="#ec4899"/>
+          <rect x="382" y="268" width="20" height="38" rx="3" fill="#92400e"/>
+          <rect x="292" y="250" width="12" height="55" rx="4" fill="#78350f"/>
+          <circle cx="298" cy="225" r="34" fill="#f9a8d4"/>
+          <circle cx="278" cy="238" r="24" fill="#fbcfe8"/>
+          <circle cx="318" cy="236" r="24" fill="#f472b6"/>
+          <circle cx="330" cy="360" r="6" fill="#fef08a"/>
+          <circle cx="445" cy="348" r="6" fill="#fbcfe8"/>
+          <circle cx="470" cy="375" r="6" fill="#fef08a"/>
+        </g>
+
+        <!-- SUMMER -->
+        <g clip-path="url(#q-summer)">
+          <rect x="500" y="0" width="250" height="440" fill="url(#sky-su)"/>
+          <circle cx="630" cy="88" r="46" fill="#fef08a" opacity="0.45"/>
+          <circle cx="630" cy="88" r="34" fill="#facc15"/>
+          <path d="M480 310 Q 625 235 770 305 L 770 440 L 480 440 Z" fill="#4ade80"/>
+          <path d="M480 350 Q 625 280 770 345 L 770 440 L 480 440 Z" fill="#22c55e"/>
+          <rect x="545" y="245" width="76" height="60" rx="6" fill="#ffffff"/>
+          <polygon points="535,249 583,204 631,249" fill="#0284c7"/>
+          <rect x="572" y="268" width="22" height="37" rx="3" fill="#b45309"/>
+          <g transform="translate(675, 290)">
+            <rect x="-3" y="0" width="6" height="45" fill="#15803d"/>
+            <circle cx="0" cy="0" r="18" fill="#facc15"/>
+            <circle cx="0" cy="0" r="9" fill="#78350f"/>
+          </g>
+          <g transform="translate(712, 310)">
+            <rect x="-2.5" y="0" width="5" height="38" fill="#15803d"/>
+            <circle cx="0" cy="0" r="15" fill="#facc15"/>
+            <circle cx="0" cy="0" r="7" fill="#78350f"/>
+          </g>
+        </g>
+
+        <!-- AUTUMN -->
+        <g clip-path="url(#q-autumn)">
+          <rect x="750" y="0" width="250" height="440" fill="url(#sky-au)"/>
+          <path d="M730 305 Q 875 230 1020 310 L 1020 440 L 730 440 Z" fill="#fdba74"/>
+          <path d="M730 345 Q 875 285 1020 350 L 1020 440 L 730 440 Z" fill="#f97316"/>
+          <rect x="805" y="248" width="74" height="58" rx="6" fill="#fffbeb"/>
+          <polygon points="795,252 842,208 889,252" fill="#b45309"/>
+          <rect x="832" y="268" width="20" height="38" rx="3" fill="#78350f"/>
+          <rect x="924" y="245" width="14" height="60" rx="4" fill="#5c2d0c"/>
+          <circle cx="931" cy="218" r="36" fill="#ea580c"/>
+          <circle cx="910" cy="234" r="25" fill="#f97316"/>
+          <circle cx="950" cy="232" r="25" fill="#facc15"/>
+          <ellipse cx="795" cy="120" rx="8" ry="4" transform="rotate(25 795 120)" fill="#ea580c"/>
+          <ellipse cx="880" cy="95" rx="9" ry="4.5" transform="rotate(-20 880 95)" fill="#eab308"/>
+          <ellipse cx="855" cy="155" rx="7" ry="4" transform="rotate(40 855 155)" fill="#dc2626"/>
+        </g>
+
+        <line x1="250" y1="0" x2="250" y2="440" stroke="rgba(255,255,255,0.65)" stroke-width="3"/>
+        <line x1="500" y1="0" x2="500" y2="440" stroke="rgba(255,255,255,0.65)" stroke-width="3"/>
+        <line x1="750" y1="0" x2="750" y2="440" stroke="rgba(255,255,255,0.65)" stroke-width="3"/>
+      </svg>
+    </div>
+
+    <!-- Big Glossy Start Button -->
+    <button id="btn-start-game" class="btn-glossy btn-start" type="button">
+      ▶ Start Game
+    </button>
+  </section>
+
+  <!-- =========================================================
+       2) GAME SCREEN
+  ========================================================== -->
+  <section id="game-screen" class="screen" aria-label="Game Arena">
+    <!-- Top Control Bar -->
+    <header class="top-bar">
+      <div class="brand-mini">
+        <span>🧩 Warm Up</span>
+        <span id="riddle-counter" class="riddle-counter">1 / 5</span>
+      </div>
+
+      <!-- Mode Switch: Manual / Auto -->
+      <div class="mode-switch-group" role="group" aria-label="Mode Selection">
+        <button id="mode-manual-btn" class="mode-btn active" type="button">✋ Manual</button>
+        <button id="mode-auto-btn" class="mode-btn" type="button">⏱️ Auto</button>
+      </div>
+
+      <!-- Visible Countdown Ring -->
+      <div id="timer-widget" class="timer-widget hidden" aria-live="polite">
+        <div class="timer-ring-wrap">
+          <svg class="timer-ring-svg" viewBox="0 0 36 36">
+            <circle class="timer-ring-bg" cx="18" cy="18" r="15"></circle>
+            <circle id="timer-ring-fg" class="timer-ring-fg" cx="18" cy="18" r="15"></circle>
+          </svg>
+          <span id="timer-seconds" class="timer-seconds">10</span>
+        </div>
+        <span id="timer-status-text" class="timer-status-text">Manual mode</span>
+      </div>
+
+      <!-- Teacher Utility Buttons -->
+      <div class="top-actions">
+        <button id="btn-pause" class="icon-btn" type="button" title="Pause / Resume (P)" aria-label="Pause">⏸</button>
+        <button id="btn-restart-top" class="icon-btn" type="button" title="Restart Game" aria-label="Restart">🔄</button>
+        <button id="btn-settings" class="icon-btn" type="button" title="Time Settings" aria-label="Settings">⚙️</button>
+        <button id="btn-fullscreen" class="icon-btn" type="button" title="Fullscreen (F)" aria-label="Fullscreen">⛶</button>
+      </div>
+    </header>
+
+    <!-- Center Wooden Signboard -->
+    <main class="board-stage">
+      <div class="wooden-board">
+        <!-- Snow caps -->
+        <div class="snow-cap left"></div>
+        <div class="snow-cap center"></div>
+        <div class="snow-cap right"></div>
+
+        <!-- Corner bolts -->
+        <div class="wood-bolt tl"></div>
+        <div class="wood-bolt tr"></div>
+        <div class="wood-bolt bl"></div>
+        <div class="wood-bolt br"></div>
+
+        <div class="cream-panel">
+          <div class="equation-row">
+            <!-- Slot 1 -->
+            <div class="pic-slot">
+              <div id="slot1-visual" class="pic-frame"></div>
+            </div>
+
+            <!-- Glossy Plus Sign -->
+            <div class="math-sign" aria-hidden="true">+</div>
+
+            <!-- Slot 2 -->
+            <div class="pic-slot">
+              <div id="slot2-visual" class="pic-frame"></div>
+            </div>
+
+            <!-- Glossy Equals Sign -->
+            <div class="math-sign" aria-hidden="true">=</div>
+
+            <!-- Answer Slot -->
+            <div class="pic-slot">
+              <div id="answer-card" class="answer-perspective" role="button" tabindex="0" aria-label="Reveal Answer">
+                <div id="answer-flipper" class="answer-flipper">
+                  <div class="answer-face answer-front">
+                    <span class="question-mark-badge">?</span>
+                  </div>
+                  <div id="answer-visual" class="answer-face answer-back"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Answer Banner -->
+          <div id="answer-banner" class="answer-banner" aria-live="polite">
+            <span id="banner-text" class="answer-banner-text">Snowman</span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Navigation & Progress Dots -->
+    <footer class="bottom-bar">
+      <div class="nav-controls">
+        <button id="btn-prev" class="btn-glossy btn-nav btn-prev" type="button">‹ Previous</button>
+        <button id="btn-reveal" class="btn-glossy btn-reveal" type="button">✨ Reveal Answer</button>
+        <button id="btn-next" class="btn-glossy btn-nav btn-next" type="button">Next ›</button>
+      </div>
+      <div id="dots-bar" class="dots-bar" role="tablist" aria-label="Riddles list"></div>
+    </footer>
+  </section>
+
+  <!-- =========================================================
+       3) END SCREEN
+  ========================================================== -->
+  <section id="end-screen" class="screen" aria-label="End Screen">
+    <div class="end-card">
+      <div class="end-trophy">🏆🎉</div>
+      <h2 class="end-title">Great Job! 🎉</h2>
+      <p style="font-size: clamp(1.1rem, 2.2vw, 1.6rem); font-weight: 800; color: #475569;">
+        You solved all 5 rebus puzzles successfully!
+      </p>
+      <div id="end-summary-strip" class="end-summary-strip"></div>
+      <button id="btn-restart-end" class="btn-glossy btn-start" type="button">
+        🔄 Restart Game
+      </button>
+    </div>
+  </section>
+
+  <!-- =========================================================
+       4) SETTINGS MODAL
+  ========================================================== -->
+  <div id="settings-modal" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+    <div class="settings-card">
+      <div class="settings-header">
+        <h3 id="settings-title" class="settings-title">⚙️ Time Settings</h3>
+        <button id="btn-close-settings" class="icon-btn" type="button" aria-label="Close">✕</button>
+      </div>
+
+      <!-- Slider 1: Thinking Time -->
+      <div class="slider-group">
+        <div class="slider-label-row">
+          <label for="slider-think">Thinking Time:</label>
+          <span id="val-think" class="slider-val-badge">10 sec</span>
+        </div>
+        <input id="slider-think" type="range" min="3" max="30" value="10">
+      </div>
+
+      <!-- Slider 2: Answer Display Time -->
+      <div class="slider-group">
+        <div class="slider-label-row">
+          <label for="slider-answer">Answer Display Time:</label>
+          <span id="val-answer" class="slider-val-badge">6 sec</span>
+        </div>
+        <input id="slider-answer" type="range" min="3" max="20" value="6">
+      </div>
+
+      <!-- Keyboard Shortcuts Info -->
+      <div class="shortcuts-box">
+        <div><span class="kbd">Space</span> — Reveal / Next</div>
+        <div><span class="kbd">←</span> <span class="kbd">→</span> — Previous / Next Word</div>
+        <div><span class="kbd">P</span> — Pause / Resume &nbsp;|&nbsp; <span class="kbd">F</span> — Fullscreen</div>
+      </div>
+
+      <button id="btn-save-settings" class="btn-glossy btn-next" style="width:100%; padding:14px;" type="button">
+        ✓ Done
+      </button>
+    </div>
+  </div>
+
+  <script>
+    /* =========================================================================
+       1. RIDDLES DATA ARRAY (EDIT RIDDLES, EMOJIS OR IMAGE URLS HERE)
+    ========================================================================= */
+    const RIDDLES = [
+      {
+        emoji1: "❄️",
+        img1: "",
+        emoji2: "👨",
+        img2: "",
+        answerEmoji: "⛄",
+        answerImg: "",
+        answerText: "Snowman",
+        theme: "theme-winter",
+        particles: ["❄️", "❅", "❆"]
+      },
+      {
+        emoji1: "☀️",
+        img1: "",
+        emoji2: "🌸",
+        img2: "",
+        answerEmoji: "🌻",
+        answerImg: "",
+        answerText: "Sunflower",
+        theme: "theme-spring",
+        particles: ["🌸", "🌼", "🍃"]
+      },
+      {
+        emoji1: "🌧️",
+        img1: "",
+        emoji2: "🏹",
+        img2: "",
+        answerEmoji: "🌈",
+        answerImg: "",
+        answerText: "Rainbow",
+        theme: "theme-summer",
+        particles: ["💧", "✨", "☀️"]
+      },
+      {
+        emoji1: "⭐",
+        img1: "",
+        emoji2: "🐟",
+        img2: "",
+        answerEmoji: "🌟",
+        answerImg: "",
+        answerText: "Starfish",
+        theme: "theme-autumn",
+        particles: ["🍂", "🍁", "⭐"]
+      },
+      {
+        emoji1: "☀️",
+        img1: "",
+        emoji2: "👓",
+        img2: "",
+        answerEmoji: "🕶️",
+        answerImg: "",
+        answerText: "Sunglasses",
+        theme: "theme-beach",
+        particles: ["🫧", "🐚", "☀️"]
+      }
+    ];
+
+    /* =========================================================================
+       2. DEFAULT TIME SETTINGS
+    ========================================================================= */
+    const THINK_TIME_DEFAULT = 10;
+    const ANSWER_TIME_DEFAULT = 6;
+
+    /* =========================================================================
+       3. APPLICATION STATE
+    ========================================================================= */
+    const state = {
+      screen: "start",
+      currentIndex: 0,
+      isRevealed: false,
+      mode: "manual",
+      isPaused: false,
+      thinkTime: THINK_TIME_DEFAULT,
+      answerTime: ANSWER_TIME_DEFAULT,
+      phase: "thinking",
+      remainingMs: THINK_TIME_DEFAULT * 1000,
+      phaseTotalMs: THINK_TIME_DEFAULT * 1000,
+      lastTick: null,
+      completedRiddles: new Array(RIDDLES.length).fill(false)
+    };
+
+    /* =========================================================================
+       4. DOM ELEMENTS
+    ========================================================================= */
+    const screens = {
+      start: document.getElementById("start-screen"),
+      game: document.getElementById("game-screen"),
+      end: document.getElementById("end-screen")
+    };
+
+    const elRiddleCounter = document.getElementById("riddle-counter");
+    const elSlot1Visual = document.getElementById("slot1-visual");
+    const elSlot2Visual = document.getElementById("slot2-visual");
+    const elAnswerCard = document.getElementById("answer-card");
+    const elAnswerFlipper = document.getElementById("answer-flipper");
+    const elAnswerVisual = document.getElementById("answer-visual");
+    const elAnswerBanner = document.getElementById("answer-banner");
+    const elBannerText = document.getElementById("banner-text");
+
+    const btnStartGame = document.getElementById("btn-start-game");
+    const btnModeManual = document.getElementById("mode-manual-btn");
+    const btnModeAuto = document.getElementById("mode-auto-btn");
+    const elTimerWidget = document.getElementById("timer-widget");
+    const elTimerRingFg = document.getElementById("timer-ring-fg");
+    const elTimerSeconds = document.getElementById("timer-seconds");
+    const elTimerStatusText = document.getElementById("timer-status-text");
+
+    const btnPause = document.getElementById("btn-pause");
+    const btnRestartTop = document.getElementById("btn-restart-top");
+    const btnSettings = document.getElementById("btn-settings");
+    const btnFullscreen = document.getElementById("btn-fullscreen");
+
+    const btnPrev = document.getElementById("btn-prev");
+    const btnReveal = document.getElementById("btn-reveal");
+    const btnNext = document.getElementById("btn-next");
+    const elDotsBar = document.getElementById("dots-bar");
+
+    const elSettingsModal = document.getElementById("settings-modal");
+    const btnCloseSettings = document.getElementById("btn-close-settings");
+    const btnSaveSettings = document.getElementById("btn-save-settings");
+    const sliderThink = document.getElementById("slider-think");
+    const sliderAnswer = document.getElementById("slider-answer");
+    const valThink = document.getElementById("val-think");
+    const valAnswer = document.getElementById("val-answer");
+
+    const elEndSummaryStrip = document.getElementById("end-summary-strip");
+    const btnRestartEnd = document.getElementById("btn-restart-end");
+
+    /* =========================================================================
+       5. HELPER: RENDER EMOJI OR IMAGE URL
+    ========================================================================= */
+    function renderPicture(container, emoji, imgUrl, altText) {
+      container.innerHTML = "";
+      if (imgUrl && imgUrl.trim() !== "") {
+        const img = document.createElement("img");
+        img.src = imgUrl;
+        img.alt = altText;
+        img.className = "img-art";
+        container.appendChild(img);
+      } else {
+        const span = document.createElement("span");
+        span.className = "emoji-art";
+        span.textContent = emoji;
+        container.appendChild(span);
+      }
+    }
+
+    /* =========================================================================
+       6. AMBIENT FALLING SNOWFLAKES & LEAVES
+    ========================================================================= */
+    const ambientContainer = document.getElementById("ambient-particles");
+
+    function updateAmbientParticles(symbols) {
+      ambientContainer.innerHTML = "";
+      const count = 16;
+      for (let i = 0; i < count; i++) {
+        const item = document.createElement("div");
+        item.className = "ambient-item";
+        item.textContent = symbols[i % symbols.length];
+        item.style.left = `${(i * (100 / count)) + (Math.random() * 5)}%`;
+        item.style.animationDuration = `${8 + Math.random() * 9}s`;
+        item.style.animationDelay = `${-Math.random() * 12}s`;
+        ambientContainer.appendChild(item);
+      }
+    }
+
+    /* =========================================================================
+       7. CONFETTI CELEBRATION ENGINE
+    ========================================================================= */
+    const confettiCanvas = document.getElementById("confetti-canvas");
+    const ctx = confettiCanvas.getContext("2d");
+    let confettiPieces = [];
+    let confettiAnimId = null;
+
+    function resizeConfetti() {
+      confettiCanvas.width = window.innerWidth;
+      confettiCanvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeConfetti);
+    resizeConfetti();
+
+    function launchConfetti(amount = 65) {
+      if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const colors = ["#ff5252", "#ffeb3b", "#40c4ff", "#69f0ae", "#ff4081", "#ffd740"];
+      for (let i = 0; i < amount; i++) {
+        confettiPieces.push({
+          x: window.innerWidth * 0.5 + (Math.random() - 0.5) * 260,
+          y: window.innerHeight * 0.48,
+          vx: (Math.random() - 0.5) * 16,
+          vy: -Math.random() * 15 - 5,
+          size: 8 + Math.random() * 8,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          rot: Math.random() * 360,
+          vRot: (Math.random() - 0.5) * 12,
+          gravity: 0.36
+        });
+      }
+      if (!confettiAnimId) {
+        animateConfetti();
+      }
+    }
+
+    function animateConfetti() {
+      ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      confettiPieces.forEach((p) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vy += p.gravity;
+        p.rot += p.vRot;
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate((p.rot * Math.PI) / 180);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size * 0.65);
+        ctx.restore();
+      });
+
+      confettiPieces = confettiPieces.filter((p) => p.y < confettiCanvas.height + 40);
+      if (confettiPieces.length > 0) {
+        confettiAnimId = requestAnimationFrame(animateConfetti);
+      } else {
+        confettiAnimId = null;
+        ctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+      }
+    }
+
+    /* =========================================================================
+       8. SCREEN NAVIGATION & RIDDLE RENDERING
+    ========================================================================= */
+    function switchScreen(target) {
+      state.screen = target;
+      Object.keys(screens).forEach((key) => {
+        screens[key].classList.toggle("active", key === target);
+      });
+
+      if (target === "start") {
+        document.body.className = "theme-start";
+        updateAmbientParticles(["❄️", "🌸", "🍃", "🍂"]);
+      } else if (target === "end") {
+        document.body.className = "theme-summer";
+        updateAmbientParticles(["🎉", "⭐", "✨"]);
+        renderEndSummary();
+        launchConfetti(110);
+      }
+    }
+
+    function buildProgressDots() {
+      elDotsBar.innerHTML = "";
+      RIDDLES.forEach((_, idx) => {
+        const dot = document.createElement("button");
+        dot.type = "button";
+        dot.className = "dot-btn";
+        dot.setAttribute("aria-label", `Riddle ${idx + 1}`);
+        dot.addEventListener("click", () => loadRiddle(idx));
+        elDotsBar.appendChild(dot);
+      });
+    }
+
+    function updateProgressDots() {
+      const dots = elDotsBar.querySelectorAll(".dot-btn");
+      dots.forEach((dot, idx) => {
+        dot.classList.toggle("active", idx === state.currentIndex);
+        dot.classList.toggle("completed", state.completedRiddles[idx] && idx !== state.currentIndex);
+      });
+    }
+
+    function loadRiddle(index) {
+      state.currentIndex = index;
+      state.isRevealed = false;
+      const item = RIDDLES[index];
+
+      document.body.className = item.theme;
+      updateAmbientParticles(item.particles);
+
+      elRiddleCounter.textContent = `${index + 1} / ${RIDDLES.length}`;
+
+      renderPicture(elSlot1Visual, item.emoji1, item.img1, "Item 1");
+      renderPicture(elSlot2Visual, item.emoji2, item.img2, "Item 2");
+
+      elAnswerFlipper.classList.remove("revealed");
+      renderPicture(elAnswerVisual, item.answerEmoji, item.answerImg, item.answerText);
+
+      elBannerText.textContent = item.answerText;
+      elAnswerBanner.classList.remove("visible");
+
+      btnPrev.disabled = index === 0;
+      btnReveal.textContent = "✨ Reveal Answer";
+      btnReveal.classList.remove("done");
+      btnNext.textContent = index === RIDDLES.length - 1 ? "Finish ›" : "Next ›";
+
+      updateProgressDots();
+      resetTimerForPhase("thinking");
+    }
+
+    function revealCurrentAnswer() {
+      if (state.isRevealed) return;
+      state.isRevealed = true;
+      state.completedRiddles[state.currentIndex] = true;
+
+      const item = RIDDLES[state.currentIndex];
+      elAnswerFlipper.classList.add("revealed");
+      elAnswerBanner.classList.add("visible");
+
+      btnReveal.textContent = "✓ Answer Revealed";
+      btnReveal.classList.add("done");
+
+      updateProgressDots();
+      launchConfetti(55);
+
+      if (state.mode === "auto") {
+        resetTimerForPhase("showing");
+      }
+    }
+
+    function goNextRiddle() {
+      if (state.currentIndex < RIDDLES.length - 1) {
+        loadRiddle(state.currentIndex + 1);
+      } else {
+        switchScreen("end");
+      }
+    }
+
+    function goPrevRiddle() {
+      if (state.currentIndex > 0) {
+        loadRiddle(state.currentIndex - 1);
+      }
+    }
+
+    function renderEndSummary() {
+      elEndSummaryStrip.innerHTML = "";
+      RIDDLES.forEach((r) => {
+        const badge = document.createElement("div");
+        badge.className = "end-mini-badge";
+        badge.innerHTML = `<span>${r.answerEmoji}</span> <span>${r.answerText}</span>`;
+        elEndSummaryStrip.appendChild(badge);
+      });
+    }
+
+    /* =========================================================================
+       9. TIME CONTROL
+    ========================================================================= */
+    const RING_CIRCUMFERENCE = 2 * Math.PI * 15;
+
+    function setMode(newMode) {
+      state.mode = newMode;
+      btnModeManual.classList.toggle("active", newMode === "manual");
+      btnModeAuto.classList.toggle("active", newMode === "auto");
+
+      if (newMode === "manual") {
+        elTimerWidget.classList.add("hidden");
+        elTimerStatusText.textContent = "Manual mode";
+        elTimerSeconds.textContent = "—";
+        elTimerRingFg.style.strokeDashoffset = 0;
+      } else {
+        elTimerWidget.classList.remove("hidden");
+        state.isPaused = false;
+        updatePauseButtonUI();
+        resetTimerForPhase(state.isRevealed ? "showing" : "thinking");
+      }
+    }
+
+    function resetTimerForPhase(phaseName) {
+      state.phase = phaseName;
+      const seconds = phaseName === "thinking" ? state.thinkTime : state.answerTime;
+      state.phaseTotalMs = seconds * 1000;
+      state.remainingMs = state.phaseTotalMs;
+      state.lastTick = performance.now();
+      updateTimerUI();
+    }
+
+    function updateTimerUI() {
+      if (state.mode === "manual") return;
+
+      const secLeft = Math.ceil(state.remainingMs / 1000);
+      elTimerSeconds.textContent = secLeft;
+
+      const ratio = Math.max(0, Math.min(1, state.remainingMs / state.phaseTotalMs));
+      const offset = RING_CIRCUMFERENCE * (1 - ratio);
+      elTimerRingFg.style.strokeDashoffset = offset;
+
+      if (state.isPaused) {
+        elTimerStatusText.textContent = "Paused";
+        elTimerRingFg.style.stroke = "#94a3b8";
+      } else if (state.phase === "thinking") {
+        elTimerStatusText.textContent = `Think: ${secLeft}s`;
+        elTimerRingFg.style.stroke = "#ff8f00";
+      } else {
+        elTimerStatusText.textContent = `Next: ${secLeft}s`;
+        elTimerRingFg.style.stroke = "#22c55e";
+      }
+    }
+
+    function togglePause() {
+      state.isPaused = !state.isPaused;
+      state.lastTick = performance.now();
+      updatePauseButtonUI();
+      updateTimerUI();
+    }
+
+    function updatePauseButtonUI() {
+      btnPause.textContent = state.isPaused ? "▶" : "⏸";
+      btnPause.classList.toggle("paused-highlight", state.isPaused);
+    }
+
+    function timerLoop(now) {
+      if (
+        state.screen === "game" &&
+        state.mode === "auto" &&
+        !state.isPaused &&
+        !elSettingsModal.classList.contains("open")
+      ) {
+        if (!state.lastTick) state.lastTick = now;
+        const delta = now - state.lastTick;
+        state.lastTick = now;
+
+        state.remainingMs -= delta;
+        if (state.remainingMs <= 0) {
+          if (state.phase === "thinking" && !state.isRevealed) {
+            revealCurrentAnswer();
+          } else {
+            goNextRiddle();
+          }
+        } else {
+          updateTimerUI();
+        }
+      } else {
+        state.lastTick = now;
+      }
+      requestAnimationFrame(timerLoop);
+    }
+
+    /* =========================================================================
+       10. EVENT LISTENERS & KEYBOARD SHORTCUTS
+    ========================================================================= */
+    btnStartGame.addEventListener("click", () => {
+      switchScreen("game");
+      loadRiddle(0);
+    });
+
+    btnModeManual.addEventListener("click", () => setMode("manual"));
+    btnModeAuto.addEventListener("click", () => setMode("auto"));
+
+    btnReveal.addEventListener("click", () => {
+      if (!state.isRevealed) {
+        revealCurrentAnswer();
+      } else {
+        goNextRiddle();
+      }
+    });
+
+    elAnswerCard.addEventListener("click", () => {
+      if (!state.isRevealed) revealCurrentAnswer();
+    });
+    elAnswerCard.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        if (!state.isRevealed) revealCurrentAnswer();
+      }
+    });
+
+    btnPrev.addEventListener("click", goPrevRiddle);
+    btnNext.addEventListener("click", goNextRiddle);
+    btnPause.addEventListener("click", togglePause);
+
+    function restartWholeGame() {
+      state.completedRiddles.fill(false);
+      switchScreen("game");
+      loadRiddle(0);
+    }
+    btnRestartTop.addEventListener("click", restartWholeGame);
+    btnRestartEnd.addEventListener("click", restartWholeGame);
+
+    btnSettings.addEventListener("click", () => {
+      elSettingsModal.classList.add("open");
+    });
+    function closeSettings() {
+      elSettingsModal.classList.remove("open");
+      state.lastTick = performance.now();
+    }
+    btnCloseSettings.addEventListener("click", closeSettings);
+    btnSaveSettings.addEventListener("click", closeSettings);
+    elSettingsModal.addEventListener("click", (e) => {
+      if (e.target === elSettingsModal) closeSettings();
+    });
+
+    sliderThink.addEventListener("input", (e) => {
+      state.thinkTime = Number(e.target.value);
+      valThink.textContent = `${state.thinkTime} sec`;
+      if (state.phase === "thinking") resetTimerForPhase("thinking");
+    });
+
+    sliderAnswer.addEventListener("input", (e) => {
+      state.answerTime = Number(e.target.value);
+      valAnswer.textContent = `${state.answerTime} sec`;
+      if (state.phase === "showing") resetTimerForPhase("showing");
+    });
+
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        document.exitFullscreen().catch(() => {});
+      }
+    }
+    btnFullscreen.addEventListener("click", toggleFullscreen);
+
+    window.addEventListener("keydown", (e) => {
+      if (elSettingsModal.classList.contains("open")) {
+        if (e.key === "Escape") closeSettings();
+        return;
+      }
+
+      if (e.code === "Space") {
+        e.preventDefault();
+        if (state.screen === "start") {
+          btnStartGame.click();
+        } else if (state.screen === "game") {
+          if (!state.isRevealed) {
+            revealCurrentAnswer();
+          } else {
+            goNextRiddle();
+          }
+        } else if (state.screen === "end") {
+          restartWholeGame();
+        }
+      } else if (e.code === "ArrowRight" && state.screen === "game") {
+        e.preventDefault();
+        goNextRiddle();
+      } else if (e.code === "ArrowLeft" && state.screen === "game") {
+        e.preventDefault();
+        goPrevRiddle();
+      } else if (e.code === "KeyP" && state.screen === "game") {
+        e.preventDefault();
+        togglePause();
+      } else if (e.code === "KeyF") {
+        e.preventDefault();
+        toggleFullscreen();
+      }
+    });
+
+    /* =========================================================================
+       11. INITIALIZE GAME ON LOAD
+    ========================================================================= */
+    buildProgressDots();
+    updateAmbientParticles(["❄️", "🌸", "🍃", "🍂"]);
+    requestAnimationFrame(timerLoop);
+  </script>
+</body>
+</html>
